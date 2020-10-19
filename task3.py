@@ -1,16 +1,11 @@
 import json
 import re
+import webbrowser
 from datetime import datetime, timedelta
 from itertools import count, chain
-from pprint import pprint
 
 id_counter = count()
-
-"""
-Endring: Del alle punkter i bøtter per 5-minuttersintervaller
-Da kan vi gå gjennom hver liste/bøtte, animere alle punktene, 
-og gå videre med konstant tid
-"""
+bucket_size = timedelta(minutes=1)
 
 def flatmap(f, iterable):
     return chain.from_iterable(map(f, iterable))
@@ -41,31 +36,32 @@ def get_time(point):
     return datetime.strptime(dt, r"%Y-%m-%d %H:%M:%S") # requires python3.7 or greater
 
 def into_buckets(points): # takes transformed and sorted points
-    delta = timedelta(minutes=1) # size of each bucket
-    buckets = [[]]
     points = iter(points)
     point = next(points)
-    current_bucket_time = get_time(point)
+    current_bucket_time = get_time(point).replace(second=0)
+    buckets = [{"timestamp": current_bucket_time.timestamp() * 1000, "points_list": []}]
     while True:
-        if get_time(point) - current_bucket_time <= delta:
-            buckets[-1].append(point)
+        if get_time(point) - current_bucket_time <= bucket_size:
+            buckets[-1]["points_list"].append(point)
             try: point = next(points)
             except: break
         else:
-            buckets.append([])
-            current_bucket_time += delta
+            buckets.append({"timestamp": current_bucket_time.timestamp() * 1000, "points_list": []})
+            current_bucket_time += bucket_size
     
     return buckets 
 
 def to_geojson(fn):
     with open(fn, mode="r") as f:
         data = json.load(f)
-        transformed = flatmap(transform, data)
-        json_str = json.dumps({
-            "type": "FeatureCollection", 
-            "features": into_buckets(sorted(transformed, key=get_time))
-            })
-        with open("data/transformed.js", mode="w") as out:
-            out.write("data_callback(" + json_str + ");")
+    transformed = into_buckets(sorted(flatmap(transform, data), key=get_time))
+    json_str = json.dumps({
+        "type": "FeatureCollection", 
+        "features": transformed
+        })
+    with open("data/transformed.js", mode="w") as out:
+        out.write("data_callback(" + json_str + ");")
+
+    webbrowser.open('file://' + os.path.realpath(filename))
 
 to_geojson("data/07.json")
