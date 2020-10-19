@@ -45,7 +45,7 @@ def get_time(point):
     return datetime.strptime(dt, r"%Y-%m-%d %H:%M:%S.%f%z") # requires python3.7 or greater
 
 def into_buckets(points): # takes transformed and sorted points
-    delta = timedelta(minutes=5) # size of each bucket
+    delta = timedelta(minutes=1) # size of each bucket
     buckets = [[]]
     points = iter(points)
     point = next(points)
