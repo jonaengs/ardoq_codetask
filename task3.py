@@ -2,6 +2,8 @@ import json
 import re
 import os
 import webbrowser
+import argparse
+import requests
 from datetime import datetime, timedelta
 from itertools import count, chain
 
@@ -64,7 +66,30 @@ def to_geojson_ish(fn):
     final_str = f"data_callback({json_str});"
     open("data/transformed.js", mode="w").write(final_str)
 
-    webbrowser.open('file://' + os.path.realpath("index.html"))
 
 
-to_geojson_ish("data/07.json")
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--year", "-y", help="year of data recording. Example: 2020", required=True)
+    parser.add_argument("--month", "-m", help="month of data recording. Example: 07 (meaning july)", required=True)
+    args = parser.parse_args()
+    year, month = args.year, args.month
+    assert len(year) == 4 and len(month) == 2, "Year must have length 4 and month length 2 (pad with zero on left)"
+    assert (int(year) > 2019 or int(month) >= 4) and (int(year) < 2020 or int(month) <= 10),\
+        "Can only get data between april 2019 and october 2020"
+
+    filepath = f"data/{year}/{month}.json"
+    if not os.path.isfile(filepath):
+        if not os.path.exists(f"data/{year}"):
+            os.makedirs(f"data/{year}")
+        url = f"https://data.urbansharing.com/oslobysykkel.no/trips/v1/{year}/{month}.json"
+        print("Data was not found locally. Downloading from:", url)
+        r = requests.get(url)
+        print("Data download completed.")
+        open(filepath, mode="w").write(r.text)
+        print("Data saved locally.")
+    
+    print("Transforming data...")
+    to_geojson_ish(filepath)
+    print("Data transformed. Displaying in browser...")
+    webbrowser.open("file://" + os.path.realpath("index.html"))
