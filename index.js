@@ -24,6 +24,7 @@ function initMap() {
 
 async function data_callback(data) {
     let dtSpan = document.getElementById("datetime-span");
+    let countSpan = document.getElementById("count-span");
     for ({timestamp, points_list} of data.features) {
         markers = points_list.map(
             (point) => new google.maps.Marker({
@@ -33,6 +34,7 @@ async function data_callback(data) {
             })
         )
         dtSpan.innerText = new Date(timestamp);
+        countSpan.innerText = points_list.length;
         if (markers) {
             animateCircles(markers);
         }
@@ -44,7 +46,9 @@ function animateCircles(markers) {
     let count = 0;
     let animation_id = window.setInterval(() => {
         count += 1;
-        markers.forEach((marker) => marker.set("icon", {...marker.icon, scale: circle_sizes[count]}));
+        markers.forEach((marker) => 
+            marker.set("icon", {...marker.icon, scale: circle_sizes[count]})
+        );
         if (count >= num_circle_sizes) {
             markers.forEach((marker) => marker.setMap(null));
             clearInterval(animation_id); 

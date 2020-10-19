@@ -3,7 +3,7 @@ from numbers import Number
 
 """
 Finds the highest value product producible by three elements from the given list
-Assume highest => most positive. So 2 is higher than 1, and -1 is higher than -2
+Interpreted highest as meaning most positive, so 2 is higher than 1, and -1 is higher than -2
 """
 def max_product(l):
     assert len(l) >= 3
