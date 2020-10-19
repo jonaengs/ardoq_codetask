@@ -9,6 +9,7 @@ const circle_sizes = Array.from(
 const animation_length = 1000;
 const update_animation_interval = animation_length / num_circle_sizes;
 const next_points_interval = 120;
+const num_points_list_count = 10;
 
 
 function initMap() {
@@ -24,7 +25,8 @@ function initMap() {
 
 async function data_callback(data) {
     let dtSpan = document.getElementById("datetime-span");
-    let countSpan = document.getElementById("count-span");
+    let countChart = setupChart();
+    let points_count = i = 0;
     for ({timestamp, points_list} of data.features) {
         markers = points_list.map(
             (point) => new google.maps.Marker({
@@ -34,9 +36,14 @@ async function data_callback(data) {
             })
         )
         dtSpan.innerText = new Date(timestamp);
-        countSpan.innerText = points_list.length;
         if (markers) {
             animateCircles(markers);
+        }
+        points_count += points_list.length;
+        i++;
+        if (i >= num_points_list_count) {
+            addData(countChart, timestamp, points_count)
+            i = points_count = 0;
         }
         await new Promise(r => setTimeout(r, next_points_interval));
     }
@@ -65,4 +72,60 @@ function getCircle(start_end) {
       strokeColor: "white",
       strokeWeight: 0.5,
     };
+}
+
+function setupChart() {
+    var ctx = document.getElementById("counts-chart").getContext('2d');
+    var chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            datasets: [{
+                backgroundColor: 'rgba(220, 120, 160, 0.7)',
+                data: []
+            }]
+        },
+        options: {
+            title: {
+                display: true,
+                text: `Number of bikes locked and unlocked during the previous ${num_points_list_count} minutes`,
+                fontSize: 14
+            },
+            legend: {
+                display: false
+            },
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    distribution: 'series',
+                    time: {
+                        round: "minute",
+                        unit: "minute"
+                    }
+                }],
+                yAxes: [{
+                    ticks: {
+                        stepSize: 10,
+                        precision: 0,
+                        suggestedMin: 0,
+                        suggestedMax: 60
+                    }
+                }]
+            },
+            elements: {
+                line: {
+                    tension: 0, // disables bezier curves
+                }
+            }
+        }
+    });
+    return chart;
+}
+
+function addData(chart, timestamp, count) {
+    let data = chart.data.datasets[0].data;
+    data.push({x: new Date(timestamp).getTime(), y: count});
+    if (data.length > 12 * 60 / num_points_list_count) { // display up to twelve hours at a time
+        data.shift();
+    }
+    chart.update();
 }
