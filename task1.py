@@ -9,8 +9,8 @@ def max_product(l):
     assert len(l) >= 3
     assert all(isinstance(n, Number) for n in l)
 
-    neg = sorted(filter(lambda x: x < 0, l))
-    pos = sorted(filter(lambda x: x > 0, l))
+    neg = sorted(filter(lambda x: x < 0, l)) # sorted negative values
+    pos = sorted(filter(lambda x: x > 0, l)) # sorted positive values
 
     return max(
         pos[-1] * product(neg[:2]) if len(pos) >= 1 and len(neg) >= 2 else float("-inf"), 
@@ -19,6 +19,6 @@ def max_product(l):
     )
 
 
-assert max_product([1, 10, 2, 6, 5, 3] ) == 300  # largest value requires product of three positive numbers
-assert max_product([1, 2, -3, 4, 5, -7]) == 105  # largest value requires product of two negative numbers
-assert max_product([-1, -2, -3, -4, -5]) == -6  # largest value is smallest negative value
+assert max_product([1, 10, 2, 6, 5, 3] ) == 300  # highest value requires product of three positive numbers
+assert max_product([1, 2, -3, 4, 5, -7]) == 105  # highest value requires product of two negative numbers
+assert max_product([-1, -2, -3, -4, -5]) == -6  # highest value is smallest possible negative value
