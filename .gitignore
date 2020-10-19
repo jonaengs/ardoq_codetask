@@ -1,0 +1,3 @@
+data/*
+!data/sample.json
+!data/google_example_data.js
