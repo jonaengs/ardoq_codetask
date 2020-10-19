@@ -1,14 +1,21 @@
 import json
+from datetime import datetime
 from itertools import count, chain
 from pprint import pprint
 
 id_counter = count()
 
-def translate(point, start_end):
+def flatmap(f, iterable):
+    return chain.from_iterable(map(f, iterable))
+
+def translate(point, start_end): # start_end = "start" | "end"
     return {
-        "dt": point[start_end + "ed_at"],
-        "name": point[start_end + "_station_name"], 
-        "coordinates": [point[start_end + "_station_longitude"], point[start_end + "_station_latitude"]]
+        "dt": point[f"{start_end}ed_at"],
+        "name": point[f"{start_end}_station_name"], 
+        "coordinates": [
+            point[f"{start_end}_station_latitude"], 
+            point[f"{start_end}_station_longitude"]
+        ]
     }
 
 def split(point):
@@ -19,7 +26,7 @@ def transform(point):
         "type": "feature",
         "geometry": {
             "type": "Point",
-            "coordinates": point["coordinates"] # as list
+            "coordinates": point["coordinates"] # [lat, lon] for enkel google.maps.LatLng input
         },
         "properties": {
             "@id": next(id_counter),
@@ -27,27 +34,19 @@ def transform(point):
         }
     }
 
-
 def get_time(point):
     dt = point["properties"]["time"]
-    return datetime.strptime(dt, r"%Y-%m-%d %H:%M:%S")
-
-            out.write("eqfeed_callback(" + json_str + ");")
+    return datetime.strptime(dt, r"%Y-%m-%d %H:%M:%S.%f%z") # requires python3.7 or greater
 
 def to_geojson(fn):
     with open(fn, mode="r") as f:
         data = json.load(f)
-        transformed = sorted(
-            map(
-                transform, 
-                chain.from_iterable(map(split, data)) # flatten the tuples returned by
-            ),
-            key=get_time)
+        transformed = map(transform, flatmap(split, data))
         json_str = json.dumps({
-            "type": "FeatureCollection", "features": list(transformed)
-        })
+            "type": "FeatureCollection", 
+            "features": sorted(transformed, key=get_time)
+            })
         with open("data/transformed.js", mode="w") as out:
-            out.write("eqfeed_callback(" + json_str + ");")
-
+            out.write("data_callback(" + json_str + ");")
 
 to_geojson("data/sample.json")
