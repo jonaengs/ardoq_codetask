@@ -4,6 +4,8 @@
 Task 3 takes a given month of historical data and displaying it out over google maps,
 along with a chart displaying the amount of bikes that have been locked and unlocked
 in (up to) the last twelve hours.
+Green circles indicate a bike being unlocked, while a red circle
+indicates that a bike was locked.
 
 To run task 3:
 
