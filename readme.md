@@ -9,10 +9,8 @@ indicates that a bike was locked.
 
 #### Running Task 3:
 
-Decode the following base64 string: 
-```QUl6YVN5QUpBLTNWMExsT0YyR0RBWDdyQ0FvUmNDdkZObENxRlU4```
-
-Paste the result into line 9, col 54 in index.html: ```src="https://maps.googleapis.com/maps/api/js?key=<PASTE KEY HERE>```
+Generate a google maps API key.
+Paste the key into line 9, col 54 in index.html: ```src="https://maps.googleapis.com/maps/api/js?key=<PASTE KEY HERE>...```
 
 Then run the following shell commands to start the application:
 ```
